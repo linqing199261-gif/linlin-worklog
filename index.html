@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>霖霖上班打卡器</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f5f5ff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", sans-serif;
+      background: #f5f5ff;
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+    }
+    .wrap {
+      width: 100%;
+      max-width: 540px;
+      padding: 16px;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 18px 18px 20px;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.08);
+      margin-bottom: 14px;
+    }
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: #777;
+      margin-bottom: 12px;
+    }
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 10px 14px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-in {
+      flex: 1;
+      background: #9c8cff;
+      color: #fff;
+    }
+    .btn-out {
+      flex: 1;
+      background: #ffb3b3;
+      color: #5c2222;
+    }
+    .btn-small {
+      flex: 0 0 auto;
+      font-size: 12px;
+      padding: 6px 10px;
+      background: #f1f1f7;
+      font-weight: 500;
+    }
+    .status {
+      font-size: 12px;
+      color: #888;
+      min-height: 16px;
+    }
+    .today {
+      font-size: 13px;
+      margin-top: 6px;
+      color: #444;
+    }
+    .section-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .stats-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 13px;
+      color: #444;
+    }
+    .stats-row div span.label {
+      color: #777;
+      margin-right: 4px;
+    }
+    .table-wrap {
+      max-height: 260px;
+      overflow: auto;
+      border-radius: 12px;
+      border: 1px solid #eee;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    thead {
+      background: #faf9ff;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    th, td {
+      padding: 6px 8px;
+      text-align: center;
+      border-bottom: 1px solid #f0f0f0;
+      white-space: nowrap;
+    }
+    th {
+      font-weight: 600;
+      color: #555;
+    }
+    tr:nth-child(even) td {
+      background: #fcfcff;
+    }
+    .empty-tip {
+      font-size: 12px;
+      color: #999;
+      text-align: center;
+      padding: 10px 0;
+    }
+
+    .manual-section {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed #eee;
+    }
+    .manual-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 6px;
+    }
+    .manual-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 10px;
+      margin-bottom: 6px;
+      align-items: center;
+    }
+    .manual-row {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 12px;
+    }
+    .manual-row label {
+      color: #777;
+    }
+    .manual-row input,
+    .manual-row select {
+      font: inherit;
+      font-size: 13px;
+      padding: 4px 6px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      outline: none;
+    }
+    .manual-row input:focus,
+    .manual-row select:focus {
+      border-color: #9c8cff;
+      box-shadow: 0 0 0 1px rgba(156,140,255,0.3);
+    }
+    .manual-btn-row {
+      justify-content: flex-end;
+      margin-top: 4px;
+    }
+    .manual-list {
+      margin-top: 4px;
+      max-height: 120px;
+      overflow: auto;
+      border-radius: 10px;
+      border: 1px solid #f0f0f0;
+      padding: 4px 6px;
+      background: #fcfcff;
+    }
+    .manual-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      padding: 3px 2px;
+    }
+    .manual-main {
+      display: flex;
+      flex-direction: column;
+    }
+    .manual-main span.type {
+      color: #777;
+      font-size: 11px;
+    }
+    .manual-actions {
+      display: flex;
+      gap: 4px;
+    }
+    .manual-actions button {
+      padding: 3px 6px;
+      font-size: 11px;
+      border-radius: 999px;
+    }
+    .manual-edit {
+      background: #e7e4ff;
+      color: #43308b;
+    }
+    .manual-delete {
+      background: #ffe1e1;
+      color: #8b3030;
+    }
+    .manual-empty {
+      font-size: 11px;
+      color: #999;
+      text-align: center;
+      padding: 4px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="title">霖霖上班打卡器</div>
+      <div class="subtitle">本地保存，不上传网络。点一下自动记录当前时间，支持手动补记。</div>
+
+      <div class="btn-row">
+        <button class="btn-in" id="btnIn">上班打卡</button>
+        <button class="btn-out" id="btnOut">下班打卡</button>
+        <button class="btn-small" id="btnClear">清空全部</button>
+      </div>
+
+      <div class="status" id="statusText"></div>
+      <div class="today" id="todaySummary"></div>
+
+      <div class="manual-section">
+        <div class="manual-title">手动补记 / 编辑（忘记打卡的时候用）</div>
+        <div class="manual-form">
+          <div class="manual-row">
+            <label for="manualDate">日期</label>
+            <input type="date" id="manualDate" />
+          </div>
+          <div class="manual-row">
+            <label for="manualTime">时间</label>
+            <input type="time" id="manualTime" />
+          </div>
+          <div class="manual-row">
+            <label for="manualType">类型</label>
+            <select id="manualType">
+              <option value="in">上班</option>
+              <option value="out">下班</option>
+            </select>
+          </div>
+        </div>
+        <div class="btn-row manual-btn-row">
+          <button class="btn-small" id="manualReset">清空表单</button>
+          <button class="btn-small" id="manualSave">添加记录</button>
+        </div>
+        <div class="manual-list" id="manualList"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">统计 · 本周 & 本月</div>
+      <div class="stats-row" id="statsWeek"></div>
+      <hr style="border:none;border-top:1px solid #f0f0f0;margin:10px 0;">
+      <div class="stats-row" id="statsMonth"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">历史 · 每日工时</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>日期</th>
+              <th>首次上班</th>
+              <th>最后下班</th>
+              <th>总工时</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <div class="empty-tip" id="emptyTip" style="display:none;">还没有记录，先打一次卡吧～</div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'linlin_worklog_v1';
+    let entries = [];
+    let nextId = 1;
+    let editingId = null;
+
+    function loadEntries() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        entries = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(entries)) entries = [];
+      } catch (e) {
+        entries = [];
+      }
+      ensureIds();
+      saveEntries();
+    }
+
+    function ensureIds() {
+      let maxId = 0;
+      for (const e of entries) {
+        if (e.id == null) {
+          maxId += 1;
+          e.id = maxId;
+        } else if (typeof e.id === 'number') {
+          if (e.id > maxId) maxId = e.id;
+        }
+        if (e.manual == null) {
+          e.manual = false;
+        }
+      }
+      nextId = maxId + 1;
+    }
+
+    function saveEntries() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    }
+
+    function formatDate(d) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function formatTime(d) {
+      const h = String(d.getHours()).padStart(2, '0');
+      const m = String(d.getMinutes()).padStart(2, '0');
+      return `${h}:${m}`;
+    }
+
+    function formatDuration(ms) {
+      const totalMin = Math.round(ms / 60000);
+      const h = Math.floor(totalMin / 60);
+      const m = totalMin % 60;
+      if (h <= 0 && m <= 0) return '0';
+      if (h <= 0) return `${m} 分`;
+      if (m === 0) return `${h} 小时`;
+      return `${h} 小时 ${m} 分`;
+    }
+
+    function minutesOfDay(d) {
+      return d.getHours() * 60 + d.getMinutes();
+    }
+
+    function minutesToTimeStr(min) {
+      const h = Math.floor(min / 60);
+      const m = min % 60;
+      return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+    }
+
+    function analyzeDay(list) {
+      const sorted = [...list].sort((a, b) => a.ts.localeCompare(b.ts));
+      let firstIn = null;
+      let lastOut = null;
+      let totalMs = 0;
+      let pendingIn = null;
+
+      for (const e of sorted) {
+        const d = new Date(e.ts);
+        if (isNaN(d)) continue;
+        if (e.type === 'in') {
+          if (!firstIn) firstIn = d;
+          pendingIn = d;
+        } else if (e.type === 'out') {
+          lastOut = d;
+          if (pendingIn) {
+            totalMs += d - pendingIn;
+            pendingIn = null;
+          }
+        }
+      }
+
+      return { firstIn, lastOut, totalMs };
+    }
+
+    function groupByDate() {
+      const map = {};
+      for (const e of entries) {
+        const d = new Date(e.ts);
+        if (isNaN(d)) continue;
+        const key = formatDate(d);
+        if (!map[key]) map[key] = [];
+        map[key].push(e);
+      }
+      return map;
+    }
+
+    function renderTodaySummary() {
+      const todayEl = document.getElementById('todaySummary');
+      const today = new Date();
+      const todayKey = formatDate(today);
+      const byDate = groupByDate();
+      const list = byDate[todayKey];
+      if (!list || list.length === 0) {
+        todayEl.textContent = '今天还没有打卡记录。';
+        return;
+      }
+      const { firstIn, lastOut, totalMs } = analyzeDay(list);
+      const parts = [];
+      if (firstIn) parts.push(`首次上班：${formatTime(firstIn)}`);
+      if (lastOut) parts.push(`最后下班：${formatTime(lastOut)}`);
+      parts.push(`今日工时：${formatDuration(totalMs)}`);
+      todayEl.textContent = parts.join(' · ');
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('tableBody');
+      const emptyTip = document.getElementById('emptyTip');
+      const byDate = groupByDate();
+      const dates = Object.keys(byDate).sort().reverse();
+
+      tbody.innerHTML = '';
+      if (dates.length === 0) {
+        emptyTip.style.display = 'block';
+        return;
+      }
+      emptyTip.style.display = 'none';
+
+      for (const dateKey of dates) {
+        const { firstIn, lastOut, totalMs } = analyzeDay(byDate[dateKey]);
+        const tr = document.createElement('tr');
+
+        const tdDate = document.createElement('td');
+        tdDate.textContent = dateKey;
+
+        const tdIn = document.createElement('td');
+        tdIn.textContent = firstIn ? formatTime(firstIn) : '—';
+
+        const tdOut = document.createElement('td');
+        tdOut.textContent = lastOut ? formatTime(lastOut) : '—';
+
+        const tdDur = document.createElement('td');
+        tdDur.textContent = totalMs > 0 ? formatDuration(totalMs) : '—';
+
+        tr.appendChild(tdDate);
+        tr.appendChild(tdIn);
+        tr.appendChild(tdOut);
+        tr.appendChild(tdDur);
+        tbody.appendChild(tr);
+      }
+    }
+
+    function getWeekRange(date) {
+      const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const day = d.getDay();
+      const diffToMon = (day + 6) % 7;
+      const start = new Date(d);
+      start.setDate(d.getDate() - diffToMon);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(start);
+      end.setDate(start.getDate() + 7);
+      return { start, end };
+    }
+
+    function getMonthRange(date) {
+      const start = new Date(date.getFullYear(), date.getMonth(), 1);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+      end.setHours(0, 0, 0, 0);
+      return { start, end };
+    }
+
+    function renderStats() {
+      const statsWeekEl = document.getElementById('statsWeek');
+      const statsMonthEl = document.getElementById('statsMonth');
+      const byDate = groupByDate();
+      const today = new Date();
+
+      const { start: weekStart, end: weekEnd } = getWeekRange(today);
+      let weekDays = 0;
+      let weekTotalMs = 0;
+      let weekInSum = 0;
+      let weekOutSum = 0;
+      let weekInCount = 0;
+      let weekOutCount = 0;
+
+      for (const dateKey of Object.keys(byDate)) {
+        const d = new Date(dateKey + 'T00:00:00');
+        if (d >= weekStart && d < weekEnd) {
+          const { firstIn, lastOut, totalMs } = analyzeDay(byDate[dateKey]);
+          if (totalMs > 0 || firstIn || lastOut) {
+            weekDays++;
+            weekTotalMs += totalMs;
+            if (firstIn) {
+              weekInSum += minutesOfDay(firstIn);
+              weekInCount++;
+            }
+            if (lastOut) {
+              weekOutSum += minutesOfDay(lastOut);
+              weekOutCount++;
+            }
+          }
+        }
+      }
+
+      if (weekDays === 0) {
+        statsWeekEl.innerHTML = '<div>本周还没有打卡记录。</div>';
+      } else {
+        const avgWorkMs = weekTotalMs / weekDays;
+        const avgIn = weekInCount ? minutesToTimeStr(Math.round(weekInSum / weekInCount)) : '—';
+        const avgOut = weekOutCount ? minutesToTimeStr(Math.round(weekOutSum / weekOutCount)) : '—';
+        statsWeekEl.innerHTML = `
+          <div><span class="label">本周打卡天数：</span>${weekDays} 天</div>
+          <div><span class="label">平均每日工时：</span>${formatDuration(avgWorkMs)}</div>
+          <div><span class="label">平均上班时间：</span>${avgIn}</div>
+          <div><span class="label">平均下班时间：</span>${avgOut}</div>
+        `;
+      }
+
+      const { start: monthStart, end: monthEnd } = getMonthRange(today);
+      let monthDays = 0;
+      let monthTotalMs = 0;
+      let monthInSum = 0;
+      let monthOutSum = 0;
+      let monthInCount = 0;
+      let monthOutCount = 0;
+
+      for (const dateKey of Object.keys(byDate)) {
+        const d = new Date(dateKey + 'T00:00:00');
+        if (d >= monthStart && d < monthEnd) {
+          const { firstIn, lastOut, totalMs } = analyzeDay(byDate[dateKey]);
+          if (totalMs > 0 || firstIn || lastOut) {
+            monthDays++;
+            monthTotalMs += totalMs;
+            if (firstIn) {
+              monthInSum += minutesOfDay(firstIn);
+              monthInCount++;
+            }
+            if (lastOut) {
+              monthOutSum += minutesOfDay(lastOut);
+              monthOutCount++;
+            }
+          }
+        }
+      }
+
+      if (monthDays === 0) {
+        statsMonthEl.innerHTML = '<div>本月还没有打卡记录。</div>';
+      } else {
+        const avgWorkMs = monthTotalMs / monthDays;
+        const avgIn = monthInCount ? minutesToTimeStr(Math.round(monthInSum / monthInCount)) : '—';
+        const avgOut = monthOutCount ? minutesToTimeStr(Math.round(monthOutSum / monthOutCount)) : '—';
+        statsMonthEl.innerHTML = `
+          <div><span class="label">本月打卡天数：</span>${monthDays} 天</div>
+          <div><span class="label">平均每日工时：</span>${formatDuration(avgWorkMs)}</div>
+          <div><span class="label">平均上班时间：</span>${avgIn}</div>
+          <div><span class="label">平均下班时间：</span>${avgOut}</div>
+        `;
+      }
+    }
+
+    function renderManualList() {
+      const listEl = document.getElementById('manualList');
+      const manualEntries = entries.filter(e => e.manual);
+      if (manualEntries.length === 0) {
+        listEl.innerHTML = '<div class="manual-empty">暂无手动补记记录。</div>';
+        return;
+      }
+      manualEntries.sort((a, b) => b.ts.localeCompare(a.ts));
+      const typeLabel = { in: '上班', out: '下班' };
+      listEl.innerHTML = manualEntries.map(e => {
+        const d = new Date(e.ts);
+        if (isNaN(d)) return '';
+        const dateStr = formatDate(d);
+        const timeStr = formatTime(d);
+        const label = typeLabel[e.type] || e.type;
+        return `
+          <div class="manual-item">
+            <div class="manual-main">
+              <span>${dateStr} ${timeStr}</span>
+              <span class="type">${label} · 手动</span>
+            </div>
+            <div class="manual-actions">
+              <button class="manual-edit" data-id="${e.id}">编辑</button>
+              <button class="manual-delete" data-id="${e.id}">删除</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderAll() {
+      renderTodaySummary();
+      renderTable();
+      renderStats();
+      renderManualList();
+    }
+
+    function addEntry(type, options = {}) {
+      const now = options.ts || new Date();
+      const entry = {
+        id: nextId++,
+        ts: now.toISOString(),
+        type,
+        manual: !!options.manual
+      };
+      entries.push(entry);
+      saveEntries();
+
+      const status = document.getElementById('statusText');
+      const label = type === 'in' ? '上班打卡' : '下班打卡';
+      status.textContent = `${label}：已记录 ${formatDate(now)} ${formatTime(now)}${entry.manual ? '（手动补记）' : ''}`;
+      renderAll();
+    }
+
+    function resetManualForm() {
+      document.getElementById('manualDate').value = '';
+      document.getElementById('manualTime').value = '';
+      document.getElementById('manualType').value = 'in';
+      editingId = null;
+      document.getElementById('manualSave').textContent = '添加记录';
+    }
+
+    function fillManualFormFromEntry(entry) {
+      const d = new Date(entry.ts);
+      if (isNaN(d)) return;
+      document.getElementById('manualDate').value = formatDate(d);
+      document.getElementById('manualTime').value = formatTime(d);
+      document.getElementById('manualType').value = entry.type;
+      editingId = entry.id;
+      document.getElementById('manualSave').textContent = '保存修改';
+    }
+
+    function handleManualSave() {
+      const dateStr = document.getElementById('manualDate').value;
+      const timeStr = document.getElementById('manualTime').value || '00:00';
+      const type = document.getElementById('manualType').value;
+
+      if (!dateStr) {
+        alert('请选择日期');
+        return;
+      }
+
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const [hh, mm] = timeStr.split(':').map(Number);
+      const dt = new Date(y, (m || 1) - 1, d || 1, hh || 0, mm || 0, 0, 0);
+
+      if (isNaN(dt)) {
+        alert('日期或时间格式不正确');
+        return;
+      }
+
+      if (editingId != null) {
+        const entry = entries.find(e => e.id === editingId);
+        if (entry) {
+          entry.ts = dt.toISOString();
+          entry.type = type;
+          entry.manual = true;
+          saveEntries();
+          document.getElementById('statusText').textContent =
+            `已修改手动记录：${formatDate(dt)} ${formatTime(dt)}`;
+        }
+      } else {
+        addEntry(type, { ts: dt, manual: true });
+      }
+
+      resetManualForm();
+      renderAll();
+    }
+
+    document.getElementById('btnIn').addEventListener('click', () => addEntry('in'));
+    document.getElementById('btnOut').addEventListener('click', () => addEntry('out'));
+    document.getElementById('btnClear').addEventListener('click', () => {
+      if (confirm('确定清空全部打卡记录吗？')) {
+        entries = [];
+        nextId = 1;
+        editingId = null;
+        saveEntries();
+        document.getElementById('statusText').textContent = '已清空全部记录';
+        resetManualForm();
+        renderAll();
+      }
+    });
+
+    document.getElementById('manualReset').addEventListener('click', () => {
+      resetManualForm();
+    });
+
+    document.getElementById('manualSave').addEventListener('click', () => {
+      handleManualSave();
+    });
+
+    document.getElementById('manualList').addEventListener('click', (e) => {
+      const target = e.target;
+      if (target.classList.contains('manual-edit')) {
+        const id = Number(target.getAttribute('data-id'));
+        const entry = entries.find(e => e.id === id);
+        if (entry) {
+          fillManualFormFromEntry(entry);
+        }
+      } else if (target.classList.contains('manual-delete')) {
+        const id = Number(target.getAttribute('data-id'));
+        const idx = entries.findIndex(e => e.id === id);
+        if (idx >= 0) {
+          const sure = confirm('确定删除这条手动记录吗？');
+          if (sure) {
+            entries.splice(idx, 1);
+            saveEntries();
+            if (editingId === id) {
+              resetManualForm();
+            }
+            document.getElementById('statusText').textContent = '已删除一条手动记录';
+            renderAll();
+          }
+        }
+      }
+    });
+
+    loadEntries();
+    renderAll();
+  </script>
+</body>
+</html>
