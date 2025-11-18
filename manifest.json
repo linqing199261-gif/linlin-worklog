@@ -1,0 +1,9 @@
+{
+  "name": "霖霖上班打卡器",
+  "short_name": "打卡器",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f5f5ff",
+  "theme_color": "#f5f5ff",
+  "icons": []
+}
